@@ -41,7 +41,7 @@ class CleanFileName(object):
             else:
                 return title + '.zip'
         except:
-            print 'error: getTitle'
+            print('error: getTitle')
             return f
 
     def getAuth(self, f):
@@ -60,11 +60,11 @@ class CleanFileName(object):
 # === MAIN ===
 def main():
     # title call
-    print ""
-    print "\n--------------------\n"
-    print "  Clean Manga Zip"
-    print "\n--------------------\n"
-    print ""
+    print("")
+    print("\n--------------------\n")
+    print("  Clean Manga Zip")
+    print("\n--------------------\n")
+    print("")
 
     # get place of URL list file
     setPlace = 'setting.json'
@@ -75,7 +75,7 @@ def main():
         except:
             setPlace = raw_input("Where setting.json? : ")
             setPlace = os.path.expanduser(setPlace)
-    print ''
+    print('')
 
     # move zip files from ~/Downloads/
     reStr = setting['Downloads_place'] + '*.zip'
@@ -106,26 +106,26 @@ def main():
             old = os.path.expanduser(authDir + x.split('/')[-1])
             new = os.path.expanduser(authDir + fileName)
             os.renames(old, new)
-            print authName
+            print(authName)
         except OSError as e:
             if e.errno is 17:
-                print 'remove : ' + x
+                print('remove : ' + x)
                 os.remove(x)
         except:
             pass
 
-    print '\nClean Directorys...\n'
+    print('\nClean Directorys...\n')
     dirs = glob.glob(setting['Manga_place'] + '*/')
     for i in dirs:
         if len(glob.glob(i + '*')) == 0:
             try:
                 os.removedirs(i)
-                print i
+                print(i)
             except:
                 pass
-    print i
+    print(i)
 
-    print '\nFINISH!!\n'
+    print('\nFINISH!!\n')
 
 
 if __name__ == "__main__":
