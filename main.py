@@ -4,6 +4,7 @@ import sys
 import glob
 import subprocess
 from tqdm import tqdm
+from pprint import pprint
 
 
 FILE_PATH = './list.txt'
@@ -15,10 +16,10 @@ def main():
         dir_paths = f.readlines()
 
     for dir_path in tqdm(dir_paths):
-        dir_path = dir_path.strip()
+        dir_path = os.path.abspath(dir_path.strip())
 
         img_fpaths = glob.glob(os.path.join(dir_path, '*'))
-        cmd = "zip -j {} {}".format(
+        cmd = 'zip -j {} {}'.format(
             dir_path,
             ' '.join(img_fpaths)
         )
