@@ -2,7 +2,7 @@
 import os
 import sys
 import glob
-import subprocess
+import shutil
 from tqdm import tqdm
 from pprint import pprint
 
@@ -17,13 +17,7 @@ def main():
 
     for dir_path in tqdm(dir_paths):
         dir_path = os.path.abspath(dir_path.strip())
-
-        img_fpaths = glob.glob(os.path.join(dir_path, '*'))
-        cmd = 'zip -j {} {}'.format(
-            dir_path,
-            ' '.join(img_fpaths)
-        )
-        subprocess.run(cmd.split(' '), stdout=subprocess.DEVNULL)
+        shutil.make_archive(dir_path, format='zip', root_dir=dir_path)
 
 
 if __name__ == "__main__":
