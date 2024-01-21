@@ -28,10 +28,10 @@ def main():
                     img.save(image_fpath[:-4] + 'webp', format='WebP')
                 os.remove(image_fpath)
 
-        # remove url files
-        url_fpaths = glob.glob(os.path.join(dir_path, '*.url'))
-        for url_fpath in url_fpaths:
-            os.remove(url_fpath)
+        # remove url/db files
+        redundant_fpaths = glob.glob(os.path.join(dir_path, '*.url')) + glob.glob(os.path.join(dir_path, '*.db'))
+        for redundant_fpath in redundant_fpaths:
+            os.remove(redundant_fpath)
 
         # make a zip
         shutil.make_archive(dir_path, format='zip', root_dir=dir_path)
