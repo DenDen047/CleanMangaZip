@@ -29,7 +29,9 @@ def main():
                 os.remove(image_fpath)
 
         # remove url/db files
-        redundant_fpaths = glob.glob(os.path.join(dir_path, '*.url')) + glob.glob(os.path.join(dir_path, '*.db'))
+        redundant_fpaths = []
+        for ext in ['url', 'db', 'ini']:
+            redundant_fpaths += glob.glob(os.path.join(dir_path, f'*.{ext}'))
         for redundant_fpath in redundant_fpaths:
             os.remove(redundant_fpath)
 
