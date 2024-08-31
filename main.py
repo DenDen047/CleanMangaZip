@@ -1,133 +1,74 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
-# -*- coding: cp932 -*-
-
-import re
 import os
 import sys
 import glob
+import argparse
 import shutil
+import time
+from PIL import Image
+from tqdm import tqdm
+from pprint import pprint
+import pillow_avif
 
-from init.Init import INIT
+
+argparser = argparse.ArgumentParser()
+argparser.add_argument('--file_path', type=str, default='./list.txt')
+argparser.add_argument('--crop_area', type=str, default=None, help='crop area in format of x1,y1,x2,y2')
+args = argparser.parse_args()
 
 
-class CleanFileName(object):
-    """docstring for CleanFileName"""
-    def __init__(self, f):
-        super(CleanFileName, self).__init__()
-        filename = self.getFileName(f)
-        # file name
-        self.zip = self.getTitle(filename)
-        # auth name
-        self.auth = self.getAuth(filename)
-
-    def getFileName(self, f):
-        fn = f.split('/')[-1]
-        return fn
-
-    def getTitle(self, f):
-        try:
-            title = f.strip()
-            title = title.replace(u'【', '[')
-            title = title.replace(u'】', ']')
-            r = title.split(']')
-            title = r[-1] if len(r)==2 else r[-2]
-            title = title.split('(')[0]
-            title = title.split('|')[0]
-            title = title.split(u'│')[0]
-            title = title.strip()
-            if title[-4:] == '.zip':
-                return title
-            else:
-                return title + '.zip'
-        except:
-            print('error: getTitle')
-            return f
-
-    def getAuth(self, f):
-        auth = f.split(']')
-        if len(auth) == 1:
-            return 'zip'
-        else:
-            auth = auth[0]
-        auth = auth.split('[')[-1]
-        auth = auth.split('(')[0]
-        auth = auth.replace('.', '_')
-        auth = auth.strip()
-        return auth
+def update_file_timestamps(directory):
+    min_timestamp = time.mktime((1980, 1, 1, 0, 0, 0, 0, 0, 0))
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            file_path = os.path.join(root, file)
+            file_time = os.path.getmtime(file_path)
+            if file_time < min_timestamp:
+                os.utime(file_path, (min_timestamp, min_timestamp))
 
 
 # === MAIN ===
 def main():
-    # title call
-    print("")
-    print("\n--------------------\n")
-    print("  Clean Manga Zip")
-    print("\n--------------------\n")
-    print("")
+    with open(args.file_path, 'r') as f:
+        dir_paths = f.readlines()
 
-    # get place of URL list file
-    setPlace = 'setting.json'
-    while True:
+    for dir_path in tqdm(dir_paths):
+        dir_path = os.path.abspath(dir_path.strip())
+
+        # convert images to webp format if the folder having AVIF images
+        avif_fpaths = sorted(glob.glob(os.path.join(dir_path, '*.avif')))
+        if len(avif_fpaths) > 0:
+            for image_fpath in avif_fpaths:
+                with Image.open(image_fpath) as img:
+                    img.save(image_fpath[:-4] + 'webp', format='WebP')
+                os.remove(image_fpath)
+
+        # remove url/db files
+        redundant_fpaths = []
+        for ext in ['url', 'db', 'ini']:
+            redundant_fpaths += glob.glob(os.path.join(dir_path, f'*.{ext}'))
+        for redundant_fpath in redundant_fpaths:
+            os.remove(redundant_fpath)
+
+        # crop images
+        if args.crop_area is not None:
+            crop_area = tuple(map(int, args.crop_area.split(',')))
+            img_fpaths = glob.glob(os.path.join(dir_path, '*'))
+            for image_fpath in img_fpaths:
+                with Image.open(image_fpath) as img:
+                    img.crop(crop_area).save(image_fpath)
+
+        # make a zip
         try:
-            setting = INIT(setPlace).pref
-            break
-        except:
-            setPlace = raw_input("Where setting.json? : ")
-            setPlace = os.path.expanduser(setPlace)
-    print('')
-
-    # move zip files from ~/Downloads/
-    reStr = setting['Downloads_place'] + '*.zip'
-    zips = glob.glob(reStr)
-    for x in zips:
-        shutil.move(x, setting['Zip_place'])
-
-    reStr = setting['Zip_place'] + '*.zip'
-    zips = glob.glob(reStr)
-    for x in zips:
-        f = CleanFileName(x)
-        # get Auth Name
-        authName = f.auth
-        # get filename
-        fileName = f.zip
-        # get path
-        authDir = setting['Manga_place'] + authName + '/'
-        # mkdir new dir
-        try:
-            os.makedirs(authDir)
-        except OSError as e:
-            if e.errno is 17:
-                pass
-        # move zip file
-        try:
-            shutil.move(x, authDir)
-            # rename
-            old = os.path.expanduser(authDir + x.split('/')[-1])
-            new = os.path.expanduser(authDir + fileName)
-            os.renames(old, new)
-            print(authName)
-        except OSError as e:
-            if e.errno is 17:
-                print('remove : ' + x)
-                os.remove(x)
-        except:
-            pass
-
-    print('\nClean Directorys...\n')
-    dirs = glob.glob(setting['Manga_place'] + '*/')
-    for i in dirs:
-        if len(glob.glob(i + '*')) == 0:
-            try:
-                os.removedirs(i)
-                print(i)
-            except:
-                pass
-    print(i)
-
-    print('\nFINISH!!\n')
+            shutil.make_archive(dir_path, format='zip', root_dir=dir_path)
+        except ValueError as e:
+            if "ZIP does not support timestamps before 1980" in str(e):
+                print(f"Warning: {dir_path} contains files with timestamps before 1980. Updating timestamps...")
+                update_file_timestamps(dir_path)
+                shutil.make_archive(dir_path, format='zip', root_dir=dir_path)
+            else:
+                raise e
 
 
 if __name__ == "__main__":
     main()
-    sys.exit()
