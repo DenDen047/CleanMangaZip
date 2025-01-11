@@ -1,19 +1,21 @@
 #!/usr/bin/python
 import os
-import sys
 import glob
 import argparse
 import shutil
 import time
 from PIL import Image
 from tqdm import tqdm
-from pprint import pprint
 import pillow_avif
 
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument('--file_path', type=str, default='./list.txt')
-argparser.add_argument('--crop_area', type=str, default=None, help='crop area in format of x1,y1,x2,y2')
+argparser.add_argument(
+    '--crop_area',
+    type=str,
+    default=None,
+    help='crop area in format of x1,y1,x2,y2')
 args = argparser.parse_args()
 
 
