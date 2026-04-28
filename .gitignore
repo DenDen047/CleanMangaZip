@@ -1,5 +1,63 @@
-.DS_Store
-*.pyc
-.python-version
+# pixi
+.pixi/
+pixi.lock
 
+# Python byte-compiled / optimized
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+
+# Unit test / coverage reports
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Type checkers
+.mypy_cache/
+.pytype/
+.pyre/
+
+# Linter / formatter caches
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environments
+.env
+.env.*
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+._*
+Thumbs.db
+
+# Claude Code
+CLAUDE.local.md
+.claude/settings.local.json
+
+# Codex CLI
+.codex/hooks/config/hooks-config.local.json
+.codex/hooks/logs/*.jsonl
+
+# Project-specific
+.python-version
 list.txt

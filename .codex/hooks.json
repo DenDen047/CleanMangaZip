@@ -1,0 +1,29 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "^startup$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .codex/hooks/run-hook.sh --hook SessionStart",
+            "timeout": 10,
+            "statusMessage": "Loading project context"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .codex/hooks/run-hook.sh --hook Stop",
+            "timeout": 10,
+            "statusMessage": "Session ending"
+          }
+        ]
+      }
+    ]
+  }
+}

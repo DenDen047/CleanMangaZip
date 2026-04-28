@@ -1,0 +1,1 @@
+notify = ["bash", ".codex/hooks/run-hook.sh"]
