@@ -1,13 +1,26 @@
 [workspace]
 name = "cleanmangazip"
 version = "0.1.0"
-description = "Clean and zip manga folders"
+description = "Clean and zip manga folders with auto-detected cropping"
 authors = ["DenDen047"]
 channels = ["conda-forge"]
 platforms = ["osx-arm64", "osx-64", "linux-64"]
 
 [tasks]
+# Single (or multiple) folder cleanup with auto crop detection.
+#   pixi run clean ~/Downloads/foo/v01
+#   pixi run clean ~/Downloads/foo/v01 ~/Downloads/foo/v02
+# Override with `--crop_area none` or `--crop_area x1,y1,x2,y2`.
+clean = "python main.py --crop_area auto"
+
+# Batch mode: read folders from list.txt (one per line).
+#   pixi run clean-batch
+clean-batch = "python main.py --crop_area auto -f list.txt"
+
+# Plain entry point (no defaults). Use when you need full control.
 run = "python main.py"
+
+# Quality checks
 test = "pytest tests/"
 lint = "ruff check ."
 format = "ruff format ."

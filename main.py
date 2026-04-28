@@ -14,13 +14,26 @@ import pillow_avif  # noqa: F401  # side-effect import: registers AVIF plugin in
 IMAGE_EXTS = (".jpg", ".jpeg", ".png", ".webp")
 
 
-argparser = argparse.ArgumentParser()
-argparser.add_argument("--file_path", type=str, default="./list.txt")
+argparser = argparse.ArgumentParser(
+    description="Clean and zip manga folders.",
+)
+argparser.add_argument(
+    "paths",
+    nargs="*",
+    help="manga folder path(s). If omitted, falls back to -f/--file_path.",
+)
+argparser.add_argument(
+    "-f",
+    "--file_path",
+    type=str,
+    default=None,
+    help="path to a file listing one folder per line (batch mode)",
+)
 argparser.add_argument(
     "--crop_area",
     type=str,
     default=None,
-    help='crop area in format of x1,y1,x2,y2, or "auto" to detect automatically',
+    help='"auto" (auto-detect), "none" (skip), or "x1,y1,x2,y2" (manual)',
 )
 argparser.add_argument(
     "--auto_samples",
@@ -137,13 +150,23 @@ def update_file_timestamps(directory):
                 os.utime(file_path, (min_timestamp, min_timestamp))
 
 
+def _resolve_dir_paths() -> list[str]:
+    if args.paths:
+        return [p.strip() for p in args.paths if p.strip()]
+    if args.file_path:
+        with open(args.file_path, "r") as f:
+            return [line.strip() for line in f if line.strip()]
+    argparser.error(
+        "no folders given. Pass folder path(s) as positional arguments or use -f <list.txt>."
+    )
+
+
 # === MAIN ===
 def main():
-    with open(args.file_path, "r") as f:
-        dir_paths = f.readlines()
+    dir_paths = _resolve_dir_paths()
 
     for dir_path in tqdm(dir_paths):
-        dir_path = os.path.abspath(dir_path.strip())
+        dir_path = os.path.abspath(dir_path)
 
         # convert images to webp format if the folder having AVIF images
         avif_fpaths = sorted(glob.glob(os.path.join(dir_path, "*.avif")))
@@ -162,7 +185,9 @@ def main():
 
         # crop images
         crop_area: tuple[int, int, int, int] | None = None
-        if args.crop_area == "auto":
+        if args.crop_area in (None, "none"):
+            pass
+        elif args.crop_area == "auto":
             crop_area = detect_crop_area(
                 dir_path,
                 n_samples=args.auto_samples,
@@ -174,7 +199,7 @@ def main():
                 )
             else:
                 print(f"Auto-detected crop {crop_area} for {dir_path}")
-        elif args.crop_area is not None:
+        else:
             crop_area = tuple(map(int, args.crop_area.split(",")))
 
         if crop_area is not None:
